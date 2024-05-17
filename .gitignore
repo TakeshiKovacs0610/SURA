@@ -1,0 +1,17 @@
+
+// Ignore all env variables
+.env
+
+// Ignore all files in the dir_name directory
+data/
+
+
+// Ignore all files in the root directory
+*.exe
+*.dil
+*.so
+
+
+// Ignore dir created by your ide
+.vscode/
+.idea/

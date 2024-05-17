@@ -109,7 +109,6 @@ print('Finished Training')
 
 
 # Testing part 
-
 correct = 0
 total = 0
 with torch.no_grad():

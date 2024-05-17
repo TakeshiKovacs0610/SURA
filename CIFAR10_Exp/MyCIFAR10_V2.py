@@ -16,7 +16,7 @@ transform = transforms.Compose([
 def main():
     # Loading the data
     # Does the work of downloading the data if not present and applying the transforms
-    trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
+    trainset = torchvision.datasets.CIFAR10(root='../data', train=True,
                                             download=True, transform=transform)
 
     # This basically creates an iterable dataset, creating batches and giving you the option to enable shuffle after every epoch.
@@ -24,7 +24,7 @@ def main():
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=100,
                                               shuffle=True, num_workers=2)
 
-    testset = torchvision.datasets.CIFAR10(root='./data', train=False,
+    testset = torchvision.datasets.CIFAR10(root='../data', train=False,
                                            download=True, transform=transform)
 
     testloader = torch.utils.data.DataLoader(testset, batch_size=100,
@@ -36,27 +36,69 @@ def main():
     import torch.nn as nn
     import torch.nn.functional as F
 
-    class myCNN(nn.Module):
-        def __init__(self):
-            super(myCNN, self).__init__()
-            self.conv1 = nn.Conv2d(3, 16, 3, padding=1)
-            self.conv2 = nn.Conv2d(16, 32, 3, padding=1)
-            self.pool = nn.MaxPool2d(2, 2)  # will be used twice after conv1 and conv2
-            self.fc1 = nn.Linear(32 * 8 * 8, 120)  # before this a linearisation will occur to ensure that the correct data is transmitted forward.
-            self.fc2 = nn.Linear(120, 84)
-            self.fc3 = nn.Linear(84, 10)
+    class ImprovedCNN(nn.Module):
         
+        def __init__(self):
+            super(ImprovedCNN, self).__init__()
+            # First convolutional block
+            self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
+            self.bn1 = nn.BatchNorm2d(32)
+            self.conv2 = nn.Conv2d(32, 32, kernel_size=3, padding=1)
+            self.bn2 = nn.BatchNorm2d(32)
+            self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
+            self.dropout1 = nn.Dropout(0.25)
+
+            # Second convolutional block
+            self.conv3 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+            self.bn3 = nn.BatchNorm2d(64)
+            self.conv4 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
+            self.bn4 = nn.BatchNorm2d(64)
+            self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
+            self.dropout2 = nn.Dropout(0.25)
+
+            # Third convolutional block
+            self.conv5 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
+            self.bn5 = nn.BatchNorm2d(128)
+            self.conv6 = nn.Conv2d(128, 128, kernel_size=3, padding=1)
+            self.bn6 = nn.BatchNorm2d(128)
+            self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
+            self.dropout3 = nn.Dropout(0.25)
+
+            # Fully connected layers
+            self.fc1 = nn.Linear(128 * 4 * 4, 512)
+            self.bn_fc1 = nn.BatchNorm1d(512)
+            self.dropout_fc1 = nn.Dropout(0.5)
+            self.fc2 = nn.Linear(512, 256)
+            self.bn_fc2 = nn.BatchNorm1d(256)
+            self.dropout_fc2 = nn.Dropout(0.5)
+            self.fc3 = nn.Linear(256, 10)
+
         def forward(self, x):
-            x = self.pool(F.relu(self.conv1(x)))
-            x = self.pool(F.relu(self.conv2(x)))
-            x = x.view(-1, 32 * 8 * 8)
-            x = F.relu(self.fc1(x))
-            x = F.relu(self.fc2(x))
+            x = F.relu(self.bn1(self.conv1(x)))
+            x = F.relu(self.bn2(self.conv2(x)))
+            x = self.pool1(x)
+            x = self.dropout1(x)
+
+            x = F.relu(self.bn3(self.conv3(x)))
+            x = F.relu(self.bn4(self.conv4(x)))
+            x = self.pool2(x)
+            x = self.dropout2(x)
+
+            x = F.relu(self.bn5(self.conv5(x)))
+            x = F.relu(self.bn6(self.conv6(x)))
+            x = self.pool3(x)
+            x = self.dropout3(x)
+
+            x = x.view(-1, 128 * 4 * 4)
+            x = F.relu(self.bn_fc1(self.fc1(x)))
+            x = self.dropout_fc1(x)
+            x = F.relu(self.bn_fc2(self.fc2(x)))
+            x = self.dropout_fc2(x)
             x = self.fc3(x)
             return x
 
     # move to device
-    test_net = myCNN().to(device)
+    test_net = ImprovedCNN().to(device)
 
     # Training loop setup
     import torch.optim as optim

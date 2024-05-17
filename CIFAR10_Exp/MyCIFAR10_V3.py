@@ -8,24 +8,32 @@ device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
 # Data loading work
 # My transform
-transform = transforms.Compose([
+transform_train = transforms.Compose([
+    transforms.RandomCrop(32, padding=4),
+    transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
-])  # Normalize ((mean), (std))
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+])
+
+transform_test = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+])
+
 
 def main():
     # Loading the data
     # Does the work of downloading the data if not present and applying the transforms
-    trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
-                                            download=True, transform=transform)
+    trainset = torchvision.datasets.CIFAR10(root='../data', train=True,
+                                            download=True, transform=transform_train)
 
     # This basically creates an iterable dataset, creating batches and giving you the option to enable shuffle after every epoch.
     # num_workers -> number of subprocesses to use for dataloading. More workers can speed up process.
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=100,
                                               shuffle=True, num_workers=2)
 
-    testset = torchvision.datasets.CIFAR10(root='./data', train=False,
-                                           download=True, transform=transform)
+    testset = torchvision.datasets.CIFAR10(root='../data', train=False,
+                                           download=True, transform=transform_test)
 
     testloader = torch.utils.data.DataLoader(testset, batch_size=100,
                                              shuffle=False, num_workers=2)
@@ -104,7 +112,8 @@ def main():
     import torch.optim as optim
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(test_net.parameters(), lr=0.001, momentum=0.9)
+    optimizer = optim.Adam(test_net.parameters(), lr=0.001)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
     for epoch in range(10):
         running_loss = 0.0
@@ -133,6 +142,8 @@ def main():
                 # .3f ensures that the printed loss is rounded and displayed to 3 decimal places f -> fixed point
                 print(f'[Epoch {epoch + 1}, Batch {i + 1}] loss: {running_loss / 200:.3f}')
                 running_loss = 0.0
+        
+        scheduler.step()
 
     print('Finished Training')
 

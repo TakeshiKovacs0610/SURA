@@ -8,32 +8,24 @@ device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
 # Data loading work
 # My transform
-transform_train = transforms.Compose([
-    transforms.RandomCrop(32, padding=4),
-    transforms.RandomHorizontalFlip(),
+transform = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-])
-
-transform_test = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-])
-
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+])  # Normalize ((mean), (std))
 
 def main():
     # Loading the data
     # Does the work of downloading the data if not present and applying the transforms
-    trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
-                                            download=True, transform=transform_train)
+    trainset = torchvision.datasets.CIFAR10(root='../data', train=True,
+                                            download=True, transform=transform)
 
     # This basically creates an iterable dataset, creating batches and giving you the option to enable shuffle after every epoch.
     # num_workers -> number of subprocesses to use for dataloading. More workers can speed up process.
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=100,
                                               shuffle=True, num_workers=2)
 
-    testset = torchvision.datasets.CIFAR10(root='./data', train=False,
-                                           download=True, transform=transform_test)
+    testset = torchvision.datasets.CIFAR10(root='../data', train=False,
+                                           download=True, transform=transform)
 
     testloader = torch.utils.data.DataLoader(testset, batch_size=100,
                                              shuffle=False, num_workers=2)
@@ -44,76 +36,33 @@ def main():
     import torch.nn as nn
     import torch.nn.functional as F
 
-    class ImprovedCNN(nn.Module):
-        
+    class myCNN(nn.Module):
         def __init__(self):
-            super(ImprovedCNN, self).__init__()
-            # First convolutional block
-            self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
-            self.bn1 = nn.BatchNorm2d(32)
-            self.conv2 = nn.Conv2d(32, 32, kernel_size=3, padding=1)
-            self.bn2 = nn.BatchNorm2d(32)
-            self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
-            self.dropout1 = nn.Dropout(0.25)
-
-            # Second convolutional block
-            self.conv3 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
-            self.bn3 = nn.BatchNorm2d(64)
-            self.conv4 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
-            self.bn4 = nn.BatchNorm2d(64)
-            self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-            self.dropout2 = nn.Dropout(0.25)
-
-            # Third convolutional block
-            self.conv5 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
-            self.bn5 = nn.BatchNorm2d(128)
-            self.conv6 = nn.Conv2d(128, 128, kernel_size=3, padding=1)
-            self.bn6 = nn.BatchNorm2d(128)
-            self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
-            self.dropout3 = nn.Dropout(0.25)
-
-            # Fully connected layers
-            self.fc1 = nn.Linear(128 * 4 * 4, 512)
-            self.bn_fc1 = nn.BatchNorm1d(512)
-            self.dropout_fc1 = nn.Dropout(0.5)
-            self.fc2 = nn.Linear(512, 256)
-            self.bn_fc2 = nn.BatchNorm1d(256)
-            self.dropout_fc2 = nn.Dropout(0.5)
-            self.fc3 = nn.Linear(256, 10)
-
+            super(myCNN, self).__init__()
+            self.conv1 = nn.Conv2d(3, 16, 3, padding=1)
+            self.conv2 = nn.Conv2d(16, 32, 3, padding=1)
+            self.pool = nn.MaxPool2d(2, 2)  # will be used twice after conv1 and conv2
+            self.fc1 = nn.Linear(32 * 8 * 8, 120)  # before this a linearisation will occur to ensure that the correct data is transmitted forward.
+            self.fc2 = nn.Linear(120, 84)
+            self.fc3 = nn.Linear(84, 10)
+        
         def forward(self, x):
-            x = F.relu(self.bn1(self.conv1(x)))
-            x = F.relu(self.bn2(self.conv2(x)))
-            x = self.pool1(x)
-            x = self.dropout1(x)
-
-            x = F.relu(self.bn3(self.conv3(x)))
-            x = F.relu(self.bn4(self.conv4(x)))
-            x = self.pool2(x)
-            x = self.dropout2(x)
-
-            x = F.relu(self.bn5(self.conv5(x)))
-            x = F.relu(self.bn6(self.conv6(x)))
-            x = self.pool3(x)
-            x = self.dropout3(x)
-
-            x = x.view(-1, 128 * 4 * 4)
-            x = F.relu(self.bn_fc1(self.fc1(x)))
-            x = self.dropout_fc1(x)
-            x = F.relu(self.bn_fc2(self.fc2(x)))
-            x = self.dropout_fc2(x)
+            x = self.pool(F.relu(self.conv1(x)))
+            x = self.pool(F.relu(self.conv2(x)))
+            x = x.view(-1, 32 * 8 * 8)
+            x = F.relu(self.fc1(x))
+            x = F.relu(self.fc2(x))
             x = self.fc3(x)
             return x
 
     # move to device
-    test_net = ImprovedCNN().to(device)
+    test_net = myCNN().to(device)
 
     # Training loop setup
     import torch.optim as optim
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(test_net.parameters(), lr=0.001)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+    optimizer = optim.SGD(test_net.parameters(), lr=0.001, momentum=0.9)
 
     for epoch in range(10):
         running_loss = 0.0
@@ -142,8 +91,6 @@ def main():
                 # .3f ensures that the printed loss is rounded and displayed to 3 decimal places f -> fixed point
                 print(f'[Epoch {epoch + 1}, Batch {i + 1}] loss: {running_loss / 200:.3f}')
                 running_loss = 0.0
-        
-        scheduler.step()
 
     print('Finished Training')
 

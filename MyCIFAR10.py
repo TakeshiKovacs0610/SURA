@@ -2,6 +2,10 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 
+# MPS -> Metal Performance Shading for Apple Silicon
+# Check if MPS is available and set the device
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+
 # Data loading work
 # My transform
 transform = transforms.Compose([
@@ -50,7 +54,8 @@ class myCNN(nn.Module):
         x = self.fc3(x)
         return x
 
-test_net = myCNN()
+#move to device
+test_net = myCNN().to(device)
 
 # Training loop setup
 import torch.optim as optim
@@ -66,7 +71,10 @@ for epoch in range(10):
         # get the inputs, data is a list of [inputs, labels]
         # data is a list with 2 elements both are tensors, input is a tensor containing input images and labels is a tensor containing labels
         inputs, labels = data
-
+        
+        # move to the device
+        inputs, labels = inputs.to(device), labels.to(device)
+        
         # zero the parameter gradients
         optimizer.zero_grad()
 
@@ -91,6 +99,10 @@ total = 0
 with torch.no_grad():
     for data in testloader:
         images, labels = data
+        
+        # moved to device
+        images, labels = images.to(device), labels.to(device)
+        
         outputs = test_net(images)
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)

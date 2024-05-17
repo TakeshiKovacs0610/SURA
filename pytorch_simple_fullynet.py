@@ -82,7 +82,7 @@ test_dataset = datasets.MNIST(
     root="dataset/", train=False, transform=transforms.ToTensor(), download=True
 )
 train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
-test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
+test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True) # Shuffle the images among the batches in every epoch. Ensures we don't have the same image in each batch every time.
 
 # Initialize network
 model = NN(input_size=input_size, num_classes=num_classes).to(device)
@@ -106,11 +106,11 @@ for epoch in range(num_epochs):
         loss = criterion(scores, targets)
 
         # Backward
-        optimizer.zero_grad()
-        loss.backward()
+        optimizer.zero_grad()  # Set the gradients to zero before starting to do backpropragation because PyTorch accumulates the gradients on subsequent backward passes.
+        loss.backward()  # Calculate the gradients
 
         # Gradient descent or adam step
-        optimizer.step()
+        optimizer.step()  # Update the weights
 
 
 # Check accuracy on training & test to see how good our model
@@ -131,7 +131,7 @@ def check_accuracy(loader, model):
 
     num_correct = 0
     num_samples = 0
-    model.eval()
+    model.eval()   # Set the model to evaluation mode
 
     # We don't need to keep track of gradients here so we wrap it in torch.no_grad()
     with torch.no_grad():

@@ -73,3 +73,9 @@ Accuracy of the network on the 10000 test images: 66.22%
 [Epoch 10, Batch 400] loss: 0.621
 Finished Training
 Accuracy of the network on the 10000 test images: 76.61%
+
+
+
+# New dataset 
+
+https://www.kaggle.com/datasets/linchundan/fundusimage1000/data

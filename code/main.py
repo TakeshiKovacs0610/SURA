@@ -21,7 +21,7 @@ def main():
         num_workers = config['num_workers']
         num_epochs = config['num_epochs']
         learning_rate = config['learning_rate']
-        input_size = config.get('input_size', 32)  # Default to 32 if not specified
+        input_size = config.get('input_size', 256)  # Default to 32 if not specified
 
         transform = transforms.Compose([
             transforms.Resize((input_size, input_size)),
@@ -35,7 +35,7 @@ def main():
         ])
 
         # Get dataloaders
-        train_loader = get_dataloader(csv_file=train_csv, root_dir=train_dir, batch_size=batch_size, num_workers=num_workers, transform=transform)
+        train_loader = get_dataloader(csv_file=train_csv, root_dir=train_dir, batch_size=batch_size, num_workers=num_workers, transforms=transform)
 
         # Initialize model, loss function, and optimizer
         model = SimpleCNN(input_size=input_size)

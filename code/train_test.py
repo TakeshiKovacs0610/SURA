@@ -3,6 +3,9 @@ import torch.optim as optim
 import torch.nn as nn
 
 def train_model(dataloader, model, criterion, optimizer, num_epochs=10):
+    # criterion = nn.CrossEntropyLoss()
+    # optimizer = optim.Adam(model.parameters(), lr=0.001)
+
     for epoch in range(num_epochs):
         model.train()
         running_loss = 0.0

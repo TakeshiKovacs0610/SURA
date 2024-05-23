@@ -1,12 +1,13 @@
-import torch as nn
+import torch 
+import torch.nn as nn
 import torch.optim as optim
 from dataloader import get_dataloader
 from model import SimpleCNN
 from train_test import train_model, test_model
 
 def main():
-    train_csv = '../data/BigOne/trainLabels.csv'
-    train_dir = '../data/BigOne/sample/'
+    train_csv = '../data/train_labels.csv'
+    train_dir = '../data/fundus_757/'
 
     batch_size = 32
     num_workers = 4

@@ -1,6 +1,7 @@
 import torch 
 import torch.nn as nn
 import torch.optim as optim
+from torchvision.transforms import transforms
 from dataloader import get_dataloader
 from model import SimpleCNN
 from train_test import train_model, test_model
@@ -13,8 +14,15 @@ def main():
     num_workers = 4
     num_epochs = 10
 
+    transform = transforms.Compose([
+        transforms.Resize((32, 32)),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
+
+
     # Get dataloaders
-    train_loader = get_dataloader(csv_file=train_csv, root_dir=train_dir, batch_size=batch_size, num_workers=num_workers)
+    train_loader = get_dataloader(csv_file=train_csv, root_dir=train_dir, batch_size=batch_size, num_workers=num_workers,transforms=transform)
 
     # Initialize model, loss function, and optimizer
     model = SimpleCNN()

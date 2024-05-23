@@ -44,14 +44,9 @@ class MyDataset(Dataset):
         return image, label
 
 
-
-
-def get_dataloader(csv_file, root_dir, batch_size=32, num_workers=4):
-    transform = transforms.Compose([
-        transforms.Resize((32, 32)),
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-    ])
+def get_dataloader(csv_file, root_dir, batch_size=32, num_workers=4,transforms = None):
+    transform = transforms
+    
     dataset = MyDataset(csv_file=csv_file, root_dir=root_dir, transform=transform)
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     return dataloader
@@ -97,7 +92,5 @@ def main():
     #     print(images.shape, labels.shape)
 
 
-
 if __name__ == "__main__":
     main()
-       

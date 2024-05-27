@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision import transforms
 
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
 def main():
     train_csv = '../data/train_labels.csv'
@@ -17,7 +18,7 @@ def main():
 
     for config in configs:
         print(f"Running with configuration: {config}")
-
+        print("Device in use: ", device)
         batch_size = config['batch_size']
         num_workers = config['num_workers']
         num_epochs = config['num_epochs']
@@ -39,7 +40,7 @@ def main():
         train_loader = get_dataloader(csv_file=train_csv, root_dir=train_dir, batch_size=batch_size, num_workers=num_workers, transforms=transform)
 
         # Initialize model, loss function, and optimizer
-        model = SimpleResNet(input_size=input_size,num_classes=5)
+        model = SimpleResNet(input_size=input_size,num_classes=5).to(device)
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 

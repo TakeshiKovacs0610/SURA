@@ -69,28 +69,57 @@ def visualize_images(dataloader):
     print("DOne")
     # matplotlib.show()
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # def main():
 #     # Define transforms
 #     transform = transforms.Compose([
 #         transforms.Resize((32, 32)),  # Resize images if needed
-
-
 #         transforms.ToTensor(),  # Convert images to tensor
 #         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))  # Normalize images
 #     ])
-
 #     # Create dataset
-
 #     dataset = MyDataset(csv_file='../data/train_labels.csv', root_dir='../data/fundus_757/', transform=transform)
-
 #     # Create dataloader
 #     dataloader = torch.utils.data.DataLoader(dataset, batch_size=10, shuffle=True, num_workers=4)
-
 #     # Example usage
 #     visualize_images(dataloader)
 #     # for images, labels in dataloader:
 #     #     print(images.shape, labels.shape)
-
-
 # if __name__ == "__main__":
 #     main()

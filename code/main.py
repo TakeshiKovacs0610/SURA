@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision import transforms
 
+
 def main():
     train_csv = '../data/train_labels.csv'
     train_dir = '../data/fundus_757/'

@@ -31,8 +31,8 @@ class SimpleCNN(nn.Module):
         x = self.fc2(x)
         return x
 
-
 class SimpleResNet(nn.Module):
+    
     def __init__(self, input_size=32, num_classes=10):
         super(SimpleResNet, self).__init__()
         self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1)

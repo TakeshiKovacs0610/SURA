@@ -1,6 +1,6 @@
 import json
 from dataloader import get_dataloader
-from model import SimpleCNN
+from model import * 
 from train_test import train_model, test_model
 import torch.nn as nn
 import torch.optim as optim
@@ -38,7 +38,7 @@ def main():
         train_loader = get_dataloader(csv_file=train_csv, root_dir=train_dir, batch_size=batch_size, num_workers=num_workers, transforms=transform)
 
         # Initialize model, loss function, and optimizer
-        model = SimpleCNN(input_size=input_size)
+        model = SimpleResNet(input_size=input_size,num_classes=5)
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 

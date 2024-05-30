@@ -38,8 +38,8 @@ def main():
         ])
 
         # Get dataloaders
-        train_loader = get_dataloader(csv_file=train_csv, root_dir=train_dir, batch_size=batch_size, num_workers=num_workers, transforms=transform)
-        # train_loader = get_hdf5_dataloader('dataset.h5', batch_size=batch_size, num_workers=num_workers, transforms=transform)
+        #train_loader = get_dataloader(csv_file=train_csv, root_dir=train_dir, batch_size=batch_size, num_workers=num_workers, transforms=transform)
+        train_loader = get_hdf5_dataloader('dataset.h5', batch_size=batch_size, num_workers=num_workers, transforms=transform)
 
 
         # Initialize model, loss function, and optimizer

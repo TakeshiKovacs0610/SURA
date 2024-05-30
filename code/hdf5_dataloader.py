@@ -8,16 +8,16 @@ class HDF5Dataset(Dataset):
     def __init__(self, h5_file, transform=None):
         self.h5_file = h5_file
         self.transform = transform
-        self.hf = h5py.File(h5_file, 'r')
-        self.images = self.hf['images']
-        self.labels = self.hf['labels']
 
     def __len__(self):
-        return len(self.images)
+        with h5py.File(self.h5_file, 'r') as hf:
+            return len(hf['images'])
 
     def __getitem__(self, idx):
-        image = self.images[idx]
-        label = self.labels[idx]
+        with h5py.File(self.h5_file, 'r') as hf:
+            image = hf['images'][idx]
+            label = hf['labels'][idx]
+        
         label = torch.tensor(label, dtype=torch.long)
 
         if self.transform:

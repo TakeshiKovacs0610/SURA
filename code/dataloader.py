@@ -10,6 +10,9 @@ import torch  # pytorch
 from torch.utils.data import Dataset  # dataset class which we will inherit
 import torchvision.transforms as transforms  # for image transformations
 
+#Progress bar
+from tqdm import tqdm
+
 class MyDataset(Dataset):
     def __init__(self, csv_file, root_dir, transform=None):
         # csv_file -> Path to the csv file.

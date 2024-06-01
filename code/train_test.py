@@ -33,8 +33,9 @@ def save_checkpoint(model, optimizer, epoch, loss, filename='checkpoint.pth'):
     }
     torch.save(checkpoint, filename)
 
-def load_checkpoint(filename, model, optimizer):
-    """Loads the model and optimizer state."""
+def load_checkpoint(model_name, checkpoint_num, model, optimizer):
+    """Loads the model and optimizer state from a specified checkpoint."""
+    filename = os.path.join('..', 'saved_models', model_name, f'checkpoint_epoch_{checkpoint_num}.pth')
     checkpoint = torch.load(filename)
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -42,7 +43,7 @@ def load_checkpoint(filename, model, optimizer):
     loss = checkpoint['loss']
     return model, optimizer, epoch, loss
 
-def train_model(dataloader, model, criterion, optimizer, model_name, num_epochs=10, save_every=2, checkpoint_path=None):
+def train_model(dataloader, model, criterion, optimizer, model_name, num_epochs=10, save_every=2, checkpoint_num=None):
     """Trains the model and saves checkpoints regularly."""
     loss_values = []  # List to store loss values for visualization
     start_epoch = 0
@@ -52,8 +53,8 @@ def train_model(dataloader, model, criterion, optimizer, model_name, num_epochs=
     os.makedirs(save_dir, exist_ok=True)
 
     # Load checkpoint if provided
-    if checkpoint_path:
-        model, optimizer, start_epoch, _ = load_checkpoint(checkpoint_path,model,optimizer)
+    if checkpoint_num:
+        model, optimizer, start_epoch, _ = load_checkpoint(model_name, checkpoint_num, model, optimizer)
         print(f"Resumed training from epoch {start_epoch+1}")
 
     for epoch in range(start_epoch, num_epochs):

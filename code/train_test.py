@@ -1,4 +1,4 @@
-# Description: This file contains the functions to train and test the model.
+# Description: This file contains the functions to train, test, save, and load model checkpoints.
 
 import torch
 import torch.optim as optim
@@ -21,10 +21,36 @@ def plot_loss(loss_values, num_epochs):
     plt.grid()
     plt.show()
 
-def train_model(dataloader, model, criterion, optimizer, num_epochs=10):
+def save_checkpoint(model, optimizer, epoch, loss, filename='checkpoint.pth'):
+    """Saves the model and optimizer state."""
+    checkpoint = {
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': loss,
+    }
+    torch.save(checkpoint, filename)
+
+def load_checkpoint(filename, model, optimizer):
+    """Loads the model and optimizer state."""
+    checkpoint = torch.load(filename)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    epoch = checkpoint['epoch']
+    loss = checkpoint['loss']
+    return model, optimizer, epoch, loss
+
+def train_model(dataloader, model, criterion, optimizer, num_epochs=10, save_every=5, checkpoint_path=None):
+    """Trains the model and saves checkpoints regularly."""
     loss_values = []  # List to store loss values for visualization
-    
-    for epoch in range(num_epochs):
+    start_epoch = 0
+
+    # Load checkpoint if provided
+    if checkpoint_path:
+        model, optimizer, start_epoch, _ = load_checkpoint(checkpoint_path)
+        print(f"Resumed training from epoch {start_epoch+1}")
+
+    for epoch in range(start_epoch, num_epochs):
         model.train()
         running_loss = 0.0
         correct = 0
@@ -49,10 +75,15 @@ def train_model(dataloader, model, criterion, optimizer, num_epochs=10):
         store_loss(epoch_loss, loss_values)  # Store the epoch loss
         
         print(f'Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}, Accuracy: {epoch_acc:.2f}%')
+        
+        # Save the model checkpoint after every 'save_every' epochs
+        if (epoch + 1) % save_every == 0:
+            save_checkpoint(model, optimizer, epoch + 1, epoch_loss, f'checkpoint_epoch_{epoch+1}.pth')
 
     plot_loss(loss_values, num_epochs)  # Plot the loss values
 
 def test_model(dataloader, model):
+    """Tests the model performance on the test dataset."""
     model.eval()
     correct = 0
     total = 0

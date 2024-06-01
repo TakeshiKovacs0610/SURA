@@ -51,7 +51,7 @@ def main():
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
         # Train the model
-        train_model(train_loader, model, criterion, optimizer, num_epochs=num_epochs,model_name=cur_model,checkpoint_path=) # try loading the checkpoint
+        train_model(train_loader, model, criterion, optimizer, num_epochs=num_epochs,model_name=cur_model,checkpoint_num=None) 
 
         # Optionally, test the model (if you have a test set and loader)
         # test_loader = get_dataloader(test_csv, test_dir, batch_size=batch_size, num_workers=num_workers)

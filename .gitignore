@@ -4,7 +4,7 @@
 
 // Ignore all files in the dir_name directory
 data/
-
+saved_models/
 
 // Ignore all files in the root directory
 *.exe

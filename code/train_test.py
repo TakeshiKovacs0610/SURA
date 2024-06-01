@@ -21,7 +21,9 @@ def plot_loss(loss_values, num_epochs):
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.grid()
-    plt.show()
+    plt.show(block=True)  # Ensure the plot window blocks the script until closed
+    # Optionally, save the plot to a file
+    plt.savefig(os.path.join('..', 'saved_models', 'training_loss_plot.png'))
 
 def save_checkpoint(model, optimizer, epoch, loss, filename='checkpoint.pth'):
     """Saves the model and optimizer state."""

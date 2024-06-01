@@ -14,6 +14,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else ("mps" if torch.b
 def main():
     train_csv = '../data/train_labels.csv'
     train_dir = '../data/fundus_757/'
+    cur_model = 'test_1'
 
     # Load configurations from JSON file
     with open('configs.json', 'r') as f:
@@ -50,7 +51,7 @@ def main():
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
         # Train the model
-        train_model(train_loader, model, criterion, optimizer, num_epochs=num_epochs)
+        train_model(train_loader, model, criterion, optimizer, num_epochs=num_epochs,model_name=cur_model,checkpoint_path=) # try loading the checkpoint
 
         # Optionally, test the model (if you have a test set and loader)
         # test_loader = get_dataloader(test_csv, test_dir, batch_size=batch_size, num_workers=num_workers)

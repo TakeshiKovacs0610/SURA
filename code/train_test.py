@@ -1,9 +1,11 @@
 # Description: This file contains the functions to train, test, save, and load model checkpoints.
 
+import os
 import torch
 import torch.optim as optim
 import torch.nn as nn
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 device = torch.device("cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu"))
 
@@ -40,14 +42,18 @@ def load_checkpoint(filename, model, optimizer):
     loss = checkpoint['loss']
     return model, optimizer, epoch, loss
 
-def train_model(dataloader, model, criterion, optimizer, num_epochs=10, save_every=5, checkpoint_path=None):
+def train_model(dataloader, model, criterion, optimizer, model_name, num_epochs=10, save_every=2, checkpoint_path=None):
     """Trains the model and saves checkpoints regularly."""
     loss_values = []  # List to store loss values for visualization
     start_epoch = 0
 
+    # Create directory for saving checkpoints if it doesn't exist
+    save_dir = os.path.join('..', 'saved_models', model_name)
+    os.makedirs(save_dir, exist_ok=True)
+
     # Load checkpoint if provided
     if checkpoint_path:
-        model, optimizer, start_epoch, _ = load_checkpoint(checkpoint_path)
+        model, optimizer, start_epoch, _ = load_checkpoint(checkpoint_path,model,optimizer)
         print(f"Resumed training from epoch {start_epoch+1}")
 
     for epoch in range(start_epoch, num_epochs):
@@ -56,7 +62,7 @@ def train_model(dataloader, model, criterion, optimizer, num_epochs=10, save_eve
         correct = 0
         total = 0
         
-        for images, labels in dataloader:
+        for images, labels in tqdm(dataloader):
             images, labels = images.to(device), labels.to(device)
             
             optimizer.zero_grad()
@@ -78,7 +84,8 @@ def train_model(dataloader, model, criterion, optimizer, num_epochs=10, save_eve
         
         # Save the model checkpoint after every 'save_every' epochs
         if (epoch + 1) % save_every == 0:
-            save_checkpoint(model, optimizer, epoch + 1, epoch_loss, f'checkpoint_epoch_{epoch+1}.pth')
+            checkpoint_filename = os.path.join(save_dir, f'checkpoint_epoch_{epoch+1}.pth')
+            save_checkpoint(model, optimizer, epoch + 1, epoch_loss, checkpoint_filename)
 
     plot_loss(loss_values, num_epochs)  # Plot the loss values
 

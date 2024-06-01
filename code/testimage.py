@@ -1,3 +1,5 @@
+# Just generate a simple image and display it using matplotlib
+
 import numpy as np
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms

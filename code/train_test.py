@@ -1,3 +1,5 @@
+# Description: This file contains the functions to train and test the model.
+
 import torch
 import torch.optim as optim
 import torch.nn as nn

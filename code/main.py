@@ -1,3 +1,5 @@
+# Description: Main script to run the training and testing of the model
+
 import json
 from dataloader import get_dataloader
 from hdf5_dataloader import get_hdf5_dataloader

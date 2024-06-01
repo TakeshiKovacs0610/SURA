@@ -1,3 +1,5 @@
+# Description: This file contains the model definitions for the SimpleCNN and SimpleResNet models.
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

@@ -1,3 +1,5 @@
+# Description: This file contains the code for creating a custom dataset class and dataloader for our dataset.
+
 import os  # used for directory operations
 import pandas as pd  # reading csv files and data manipulation
 from PIL import Image  # for image manipulation

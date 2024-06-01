@@ -1,3 +1,6 @@
+# Description: This script reads the CSV file containing image labels and the image directory, loads the images,
+#              resizes them, and saves them to an HDF5 file.
+
 import os
 import h5py
 import pandas as pd

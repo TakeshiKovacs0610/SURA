@@ -1,3 +1,5 @@
+# Description: This file contains the code to create a custom dataloader for HDF5 files.
+
 import h5py
 import torch
 from torch.utils.data import Dataset, DataLoader

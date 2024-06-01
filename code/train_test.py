@@ -2,6 +2,8 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 def train_model(dataloader, model, criterion, optimizer, num_epochs=10):
     # criterion = nn.CrossEntropyLoss()
     # optimizer = optim.Adam(model.parameters(), lr=0.001)
@@ -13,6 +15,9 @@ def train_model(dataloader, model, criterion, optimizer, num_epochs=10):
         total = 0
         
         for images, labels in dataloader:
+            
+            images, labels = images.to(device), labels.to(device)
+            
             optimizer.zero_grad()
             outputs = model(images)
             loss = criterion(outputs, labels)
@@ -34,9 +39,12 @@ def test_model(dataloader, model):
     total = 0
     with torch.no_grad():
         for images, labels in dataloader:
+            images, labels = images.to(device), labels.to(device)
             outputs = model(images)
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
     accuracy = 100 * correct / total
     print(f'Test Accuracy: {accuracy:.2f}%')
+
+    

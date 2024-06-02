@@ -21,7 +21,7 @@ def async_save_checkpoint(model, optimizer, epoch, loss, filename='checkpoint.pt
     def save():
         with open(filename, 'wb') as f:
             torch.save(checkpoint, f, _use_new_zipfile_serialization=True)
-        print(f"Checkpoint saved at {filename}")
+        # print(f"Checkpoint saved at {filename}")
 
     thread = threading.Thread(target=save)
     thread.start()

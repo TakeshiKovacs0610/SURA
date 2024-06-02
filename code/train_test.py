@@ -8,7 +8,6 @@ import threading
 
 device = torch.device("cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu"))
 
-
 def async_save_checkpoint(model, optimizer, epoch, loss, filename='checkpoint.pth'):
     """Saves the model and optimizer state asynchronously using the new zipfile-based serialization format."""
     checkpoint = {
@@ -21,11 +20,11 @@ def async_save_checkpoint(model, optimizer, epoch, loss, filename='checkpoint.pt
     def save():
         with open(filename, 'wb') as f:
             torch.save(checkpoint, f, _use_new_zipfile_serialization=True)
-        # print(f"Checkpoint saved at {filename}")
-
+        with open('output.txt', 'w') as f:
+            f.write(f"Async Checkpoint saved at {filename}\n")
+        
     thread = threading.Thread(target=save)
     thread.start()
-
 
 def save_checkpoint(model, optimizer, epoch, loss, filename='checkpoint.pth'):
     """Saves the model and optimizer state."""
@@ -38,13 +37,11 @@ def save_checkpoint(model, optimizer, epoch, loss, filename='checkpoint.pth'):
     torch.save(checkpoint, filename)
     print(f"Checkpoint saved at {filename}")
 
-
-
 def store_loss(epoch_loss, loss_values):
     """Stores the loss value for the current epoch."""
     loss_values.append(epoch_loss)
 
-def plot_loss(loss_values, num_epochs):
+def plot_loss(loss_values, num_epochs, model_name):
     """Plots the loss values over epochs."""
     plt.figure()
     plt.plot(range(1, num_epochs + 1), loss_values, marker='o', linestyle='-')
@@ -52,10 +49,11 @@ def plot_loss(loss_values, num_epochs):
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.grid()
-    plot_path = os.path.join('..', 'saved_models', 'training_loss_plot.png')
+    save_dir = os.path.join('..', 'saved_models', model_name)
+    os.makedirs(save_dir, exist_ok=True)
+    plot_path = os.path.join(save_dir, f'training_loss_plot_{model_name}.png')
     plt.savefig(plot_path)
     print(f"Training loss plot saved at {plot_path}")
-
 
 def load_checkpoint(model_name, checkpoint_num, model, optimizer):
     """Loads the model and optimizer state from a specified checkpoint."""
@@ -113,7 +111,7 @@ def train_model(dataloader, model, criterion, optimizer, model_name, num_epochs=
             # save_checkpoint(model, optimizer, epoch + 1, epoch_loss, checkpoint_filename)
             async_save_checkpoint(model, optimizer, epoch + 1, epoch_loss, checkpoint_filename)
 
-    plot_loss(loss_values, num_epochs)  # Plot the loss values
+    plot_loss(loss_values, num_epochs, model_name)  # Plot the loss values
 
 def test_model(dataloader, model):
     """Tests the model performance on the test dataset."""

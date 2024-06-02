@@ -1,5 +1,3 @@
-# Description: This file contains the functions to train, test, save, and load model checkpoints.
-
 import os
 import torch
 import torch.optim as optim
@@ -21,9 +19,9 @@ def plot_loss(loss_values, num_epochs):
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.grid()
-    # plt.show(block=True)  # Ensure the plot window blocks the script until closed
-    # Optionally, save the plot to a file
-    plt.savefig(os.path.join('..', 'saved_models', 'training_loss_plot.png'))
+    plot_path = os.path.join('..', 'saved_models', 'training_loss_plot.png')
+    plt.savefig(plot_path)
+    print(f"Training loss plot saved at {plot_path}")
 
 def save_checkpoint(model, optimizer, epoch, loss, filename='checkpoint.pth'):
     """Saves the model and optimizer state."""
@@ -34,6 +32,7 @@ def save_checkpoint(model, optimizer, epoch, loss, filename='checkpoint.pth'):
         'loss': loss,
     }
     torch.save(checkpoint, filename)
+    print(f"Checkpoint saved at {filename}")
 
 def load_checkpoint(model_name, checkpoint_num, model, optimizer):
     """Loads the model and optimizer state from a specified checkpoint."""

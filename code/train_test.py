@@ -18,6 +18,8 @@ def async_save_checkpoint(model, optimizer, epoch, loss, filename='checkpoint.pt
     }
 
     def save():
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
         with open(filename, 'wb') as f:
             torch.save(checkpoint, f, _use_new_zipfile_serialization=True)
         with open('output.txt', 'w') as f:
@@ -34,6 +36,8 @@ def save_checkpoint(model, optimizer, epoch, loss, filename='checkpoint.pth'):
         'optimizer_state_dict': optimizer.state_dict(),
         'loss': loss,
     }
+    # Ensure the directory exists
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
     torch.save(checkpoint, filename)
     print(f"Checkpoint saved at {filename}")
 
@@ -108,7 +112,6 @@ def train_model(dataloader, model, criterion, optimizer, model_name, num_epochs=
         # Save the model checkpoint after every 'save_every' epochs
         if (epoch + 1) % save_every == 0:
             checkpoint_filename = os.path.join(save_dir, f'checkpoint_epoch_{epoch+1}.pth')
-            # save_checkpoint(model, optimizer, epoch + 1, epoch_loss, checkpoint_filename)
             async_save_checkpoint(model, optimizer, epoch + 1, epoch_loss, checkpoint_filename)
 
     plot_loss(loss_values, num_epochs, model_name)  # Plot the loss values

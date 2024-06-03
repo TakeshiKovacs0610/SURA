@@ -54,7 +54,7 @@ def main():
 
         # Initialize model, loss function, and optimizer
         # model = SimpleCNN(input_size=input_size,num_classes=5).to(device)
-        model= models.resnet50(pretrained = False)
+        model= models.resnet50(weights = None)
         num_classes = 5
         model.fc = nn.Linear(model.fc.in_features, num_classes)
         model = model.to(device)

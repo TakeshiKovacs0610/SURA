@@ -6,6 +6,14 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import threading
 import pandas as pd
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', handlers=[
+    logging.FileHandler("../saved_models/output.log"),
+    logging.StreamHandler()
+])
+logger = logging.getLogger()
 
 device = torch.device("cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu"))
 
@@ -40,7 +48,7 @@ def save_checkpoint(model, optimizer, epoch, loss, filename='checkpoint.pth'):
     # Ensure the directory exists
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     torch.save(checkpoint, filename)
-    print(f"Checkpoint saved at {filename}")
+    logger.info(f"Checkpoint saved at {filename}")
 
 def store_loss(epoch_loss, loss_values):
     """Stores the loss value for the current epoch."""
@@ -59,7 +67,7 @@ def plot_loss(train_losses,test_losses, num_epochs, model_name):
     os.makedirs(save_dir, exist_ok=True)
     plot_path = os.path.join(save_dir, f'training_test_loss_plot_{model_name}.png')
     plt.savefig(plot_path)
-    print(f"Training and test loss plot saved at {plot_path}")
+    logger.info(f"Training and test loss plot saved at {plot_path}")
 
 def load_checkpoint(model_name, checkpoint_num, model, optimizer):
     """Loads the model and optimizer state from a specified checkpoint."""
@@ -101,7 +109,7 @@ def train_model(train_loader,test_loader, model, criterion, optimizer, model_nam
     # Load checkpoint if provided
     if checkpoint_num:
         model, optimizer, start_epoch, _ = load_checkpoint(model_name, checkpoint_num, model, optimizer)
-        print(f"Resumed training from epoch {start_epoch+1}")
+        logger.info(f"Resumed training from epoch {start_epoch+1}")
 
     for epoch in range(start_epoch, num_epochs):
         model.train()
@@ -130,7 +138,7 @@ def train_model(train_loader,test_loader, model, criterion, optimizer, model_nam
         test_loss = evaluate_model(model,test_loader,criterion,device)
         test_losses.append(test_loss)
         
-        print(f'Epoch {epoch+1}/{num_epochs},Train Loss: {epoch_loss:.4f}, Test Loss: {test_loss:.4f}, Accuracy: {epoch_acc:.2f}%')
+        logger.info(f'Epoch {epoch+1}/{num_epochs}, Train Loss: {epoch_loss:.4f}, Test Loss: {test_loss:.4f}, Accuracy: {epoch_acc:.2f}%')
         
         # Save the model checkpoint after every 'save_every' epochs
         if (epoch + 1) % save_every == 0:
@@ -153,4 +161,4 @@ def save_predictions_to_csv(dataloader,model,output_file):
             
     df =pd.DataFrame({'Predictions':predictions})
     df.to_csv(output_file,index=False)
-    print(f"Predictions saved to {output_file}")
+    logger.info(f"Predictions saved to {output_file}")

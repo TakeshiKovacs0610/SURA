@@ -54,8 +54,9 @@ def store_loss(epoch_loss, loss_values):
     """Stores the loss value for the current epoch."""
     loss_values.append(epoch_loss)
 
-def plot_loss(train_losses,test_losses, num_epochs, model_name):
+def plot_loss(train_losses,test_losses, model_name):
     """Plots the loss values over epochs."""
+    num_epochs=len(train_losses)
     plt.figure()
     plt.plot(range(1, num_epochs + 1),train_losses, 'b-',label='Training Loss')
     plt.plot(range(1,num_epochs +1), test_losses, 'r-', label='Test Loss')
@@ -63,11 +64,49 @@ def plot_loss(train_losses,test_losses, num_epochs, model_name):
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.grid(True)
+    plt.legend(loc='upper right')
+    plt.grid(True)
     save_dir = os.path.join('..', 'saved_models', model_name)
     os.makedirs(save_dir, exist_ok=True)
     plot_path = os.path.join(save_dir, f'training_test_loss_plot_{model_name}.png')
     plt.savefig(plot_path)
+
     logger.info(f"Training and test loss plot saved at {plot_path}")
+
+def plot_metrics(train_losses, test_losses, train_accuracies,test_accuracies,model_name):
+    """Plots the loss and accuracy values over epochs."""
+    epochs = range(1, len(train_losses) + 1)
+    
+    plt.figure(figsize=(12, 6))
+    
+    # Plotting Loss
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs, train_losses, 'b-', label='Training Loss')
+    plt.plot(epochs, test_losses, 'r-', label='Test Loss')
+    plt.title('Training and Test Loss Over Epochs')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.grid(True)
+
+    # Plotting Accuracy
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs, train_accuracies, 'b-', label='Training Accuracy')
+    plt.plot(epochs, test_accuracies, 'r-', label='Test Accuracy')
+    plt.title('Training and Test Accuracy Over Epochs')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy (%)')
+    plt.legend()
+    plt.grid(True)
+
+    # Save the plot
+    save_dir = os.path.join('..', 'saved_models', model_name)
+    os.makedirs(save_dir, exist_ok=True)
+    plot_path = os.path.join(save_dir, f'training_test_metrics_plot_{model_name}.png')
+    plt.savefig(plot_path)
+    
+    logger.info(f"Training and test metrics plot saved at {plot_path}")
+
 
 def load_checkpoint(model_name, checkpoint_num, model, optimizer):
     """Loads the model and optimizer state from a specified checkpoint."""
@@ -82,7 +121,8 @@ def load_checkpoint(model_name, checkpoint_num, model, optimizer):
 def evaluate_model(model,dataloader,criterion,device):
     """Evaluate the model on the given dataset without performing updates."""
     model.eval()
-    total_loss=0.0
+    running_loss=0.0
+    correct=0
     total=0
 
     with torch.no_grad():
@@ -90,16 +130,23 @@ def evaluate_model(model,dataloader,criterion,device):
             images,labels = images.to(device),labels.to(device)
             outputs = model(images)
             loss = criterion(outputs,labels)
-            total_loss += loss.item() * images.size(0)
-            total+=images.size(0)
+            running_loss += loss.item() 
+            _,predicted =torch.max(outputs.data,1)
+            total+=labels.size(0)
+            correct+=(predicted == labels).sum().item()
+            
+    test_loss = running_loss/len(dataloader.dataset)
+    test_accuracy = 100*correct/total
 
-    model.train() # resetting back to training 
-    return total_loss/total
+    # model.train() # resetting back to training 
+    return test_loss,test_accuracy
 
 def train_model(train_loader,test_loader, model, criterion, optimizer, model_name, num_epochs=10, save_every=2, checkpoint_num=None):
     """Trains the model and saves checkpoints regularly."""
     train_losses = []  # List to store loss values for visualization
     test_losses=[]
+    train_accuracies=[]
+    test_accuracies=[]
     start_epoch = 0
 
     # Create directory for saving checkpoints if it doesn't exist
@@ -125,27 +172,38 @@ def train_model(train_loader,test_loader, model, criterion, optimizer, model_nam
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-            
-            running_loss += loss.item() * images.size(0)
+
+            running_loss += loss.item()
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
+            print("Batch Loss: {}, Running Accuracy: {}".format(loss.item(), correct/total))
         
         epoch_loss = running_loss / len(train_loader.dataset)
         epoch_acc = 100 * correct / total
         train_losses.append(epoch_loss)
+        train_accuracies.append(epoch_acc)
 
-        test_loss = evaluate_model(model,test_loader,criterion,device)
+        test_loss,test_accuracy = evaluate_model(model,test_loader,criterion,device)
         test_losses.append(test_loss)
+        test_accuracies.append(test_accuracy)
         
         logger.info(f'Epoch {epoch+1}/{num_epochs}, Train Loss: {epoch_loss:.4f}, Test Loss: {test_loss:.4f}, Accuracy: {epoch_acc:.2f}%')
         
+        # write metrics to file
+        metrics_path=os.path.join(save_dir,f'training_test_metrics_{model_name}.txt')
+        with open(metrics_path,'a') as f:
+            f.write(f'Epoch {epoch+1}: Train Loss : {epoch_loss:.4f}, Test Loss: {test_loss:.4f},Train Accuracy: {epoch_acc:.2f}%, Test Accuracy: {test_accuracy:.2f}%\n')
+
         # Save the model checkpoint after every 'save_every' epochs
         if (epoch + 1) % save_every == 0:
             checkpoint_filename = os.path.join(save_dir, f'checkpoint_epoch_{epoch+1}.pth')
             async_save_checkpoint(model, optimizer, epoch + 1, epoch_loss, checkpoint_filename)
+        
+        #plot metrics after each epoch
+        plot_metrics(train_losses,test_losses, train_accuracies,test_accuracies,model_name)
 
-    plot_loss(train_losses,test_losses, num_epochs, model_name)  # Plot the loss values
+    plot_metrics(train_losses,test_losses, train_accuracies,test_accuracies,model_name)  # Plot the loss values
 
 
 def save_predictions_to_csv(dataloader,model,output_file):

@@ -8,8 +8,8 @@ import numpy as np
 from PIL import Image
 
 # Paths to your CSV file and image directory
-csv_file = '../data/kaggle_data/test_Labels.csv'
-root_dir = '../data/kaggle_data/test/'
+csv_file = '../../data/kaggle_data/test_Labels.csv'
+root_dir = '../../data/kaggle_data/test/'
 
 # Desired image size
 image_size = (224, 224)

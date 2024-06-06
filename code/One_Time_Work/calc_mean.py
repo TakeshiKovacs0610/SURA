@@ -22,7 +22,7 @@ def calculate_mean_std(images):
     std = np.std(all_images, axis=(0,1,2))
     return mean,std
 
-folder = '../data/fundus_757/train/'
+folder = '../../data/fundus_757/train/'
 images = load_images(folder)
 mean,std = calculate_mean_std(images)
 

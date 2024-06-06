@@ -17,6 +17,7 @@ logger = logging.getLogger()
 
 device = torch.device("cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu"))
 
+
 def async_save_checkpoint(model, optimizer, epoch, loss, filename='checkpoint.pth'):
     """Saves the model and optimizer state asynchronously using the new zipfile-based serialization format."""
     checkpoint = {

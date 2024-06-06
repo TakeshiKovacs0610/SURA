@@ -1,8 +1,9 @@
-# Description: This file contains the model definitions for the SimpleCNN and SimpleResNet models.
+# models.py
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torchvision import models
 
 class SimpleCNN(nn.Module):
     def __init__(self, input_size=32, num_classes=10):
@@ -49,8 +50,8 @@ class SimpleResNet(nn.Module):
         self.fc1 = nn.Linear(self._to_linear, 256)
         self.fc2 = nn.Linear(256, num_classes)
 
-    # to caluclate what the final dimension of the image will be if it passed through the layers and it calcualted by sending a dummy tensor through it
-    # then it is passed thorugh the netwrok and tis was importsnt to know the input dimension for the final fully connected layer.
+    # to calculate what the final dimension of the image will be if it passed through the layers and it calculated by sending a dummy tensor through it
+    # then it is passed through the network and it was important to know the input dimension for the final fully connected layer.
     def _calculate_to_linear(self, input_size):
         x = torch.randn(1, 3, input_size, input_size)
         x = self.pool(F.relu(self.bn1(self.conv1(x))))
@@ -64,3 +65,21 @@ class SimpleResNet(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return x
+
+class CustomResNet(nn.Module):
+    def __init__(self, num_classes=1):
+        super(CustomResNet, self).__init__()
+        self.model = models.resnet50(pretrained=False)
+        self.model.fc = nn.Sequential(
+            nn.BatchNorm1d(self.model.fc.in_features),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(self.model.fc.in_features, 1000),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(1000, num_classes),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        return self.model(x)

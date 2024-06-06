@@ -12,19 +12,22 @@ from torchvision import transforms, models
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def main():
-    train_dir = '../data/kaggle_data/train/'
-    test_dir = '../data/kaggle_data/test/'
-    root_dir='../data/kaggle_data/'
-
-    cur_model='resnet_50_pretrained_full_data'
-
+    
+    # V add path here
+    train_dir = 'path/to/train/'
+    test_dir = 'path/to/test/'
+    root_dir='path to main directory where we can save the remaining information'
+    
+    # V the model name
+    cur_model='finetuning_resnet_50_attempt_1'
+    
     # Load configurations from JSON file
     with open('configs.json', 'r') as f:
         configs = json.load(f)
 
     # Define DEBUG flag
     DEBUG = False  # Set to False for full dataset training
-
+    
     for config in configs:
         print(f"Running with configuration: {config}")
         print("Device in use: ", device)
@@ -46,11 +49,12 @@ def main():
             transforms.Normalize(mean=[0.3203331149411, 0.224459668745, 0.1610336857647], std=[0.3024821581568, 0.2185284505098, 0.1741767781568])
         ])
 
+        
+        # V add the path to the hdf5 files
         train_hdf5_path = os.path.join(train_dir,'train_dataset.h5')
         test_hdf5_path = os.path.join(test_dir,'test_dataset.h5')
-
+        
         # Get dataloaders
-        # train_loader = get_dataloader(csv_file=train_csv, root_dir=train_dir, batch_size=batch_size, num_workers=num_workers, transforms=transform)
         train_loader = get_hdf5_dataloader(train_hdf5_path, batch_size=batch_size, num_workers=num_workers, transforms=transform)
         test_loader = get_hdf5_dataloader(test_hdf5_path, batch_size=batch_size, num_workers=num_workers, transforms=transform)
         
@@ -59,28 +63,16 @@ def main():
             train_loader = torch.utils.data.DataLoader(torch.utils.data.Subset(train_loader.dataset, list(range(128))), batch_size=batch_size, num_workers=num_workers, shuffle=True)
             test_loader = torch.utils.data.DataLoader(torch.utils.data.Subset(test_loader.dataset, list(range(32))), batch_size=batch_size, num_workers=num_workers, shuffle=False)
             num_epochs = 30  # Reduce number of epochs for debugging
-
-
-        # Initialize model, loss function, and optimizer
-        # model = SimpleCNN(input_size=input_size,num_classes=5).to(device)
-        model= models.resnet50(pretrained=True)
-        num_classes = 5
-        model.fc = nn.Linear(model.fc.in_features, num_classes)
-        model = model.to(device)
+            
         
-        criterion = nn.CrossEntropyLoss()
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-
-        # Train the model
-        train_model(train_loader,test_loader, model, criterion, optimizer,model_name=cur_model, num_epochs=num_epochs,save_every=2,checkpoint_num=None)
-
-        result_csv_path = os.path.join(root_dir,'predictions.csv')
-        save_predictions_to_csv(test_loader,model,result_csv_path)
-
-        # Optionally, test the model (if you have a test set and loader)
-        # test_loader = get_dataloader(test_csv, test_dir, batch_size=batch_size, num_workers=num_workers)
-        # test_model(test_loader, model)
-
-if __name__ == "__main__":
-    main()
+    # V add the path to the checkpoint
+    checkpoint_path = 'path/to/checkpoint.pth'
+    checkpoint = torch.load(checkpoint_path)
     
+    
+    
+    
+
+
+if __name__ == '__main__':
+    main()

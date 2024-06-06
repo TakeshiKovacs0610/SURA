@@ -4,7 +4,7 @@ import json
 from One_Time_Work.dataloader import get_dataloader
 from hdf5_dataloader import get_hdf5_dataloader
 from model import * 
-from train_test import train_model, save_predictions_to_csv
+from binary_train_test import train_model, save_predictions_to_csv
 import torch.nn as nn
 import torch.optim as optim
 from torchvision import transforms, models

@@ -70,15 +70,19 @@ class CustomResNet(nn.Module):
     def __init__(self, num_classes=1):
         super(CustomResNet, self).__init__()
         self.model = models.resnet50(pretrained=False)
+        
+        # Original ResNet-50 fully connected layer
+        original_fc_in_features = self.model.fc.in_features
+        
+        # Modify the fully connected layer to fit the new architecture
         self.model.fc = nn.Sequential(
-            nn.BatchNorm1d(self.model.fc.in_features),
-            nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(self.model.fc.in_features, 1000),
-            nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(1000, num_classes),
-            nn.Sigmoid()
+            nn.Linear(original_fc_in_features, 1000), # Linear layer from 2048 to 1000 (assuming default ResNet-50 config)
+            nn.BatchNorm1d(1000),                     # Batch Normalization on 1000 features
+            nn.ReLU(),                                # ReLU activation
+            nn.Dropout(0.2),                          # Dropout with 20% probability
+            nn.Linear(1000, num_classes),             # Linear layer from 1000 to num_classes (which is 1 in this case)
+            # V if this gives error let me know. GPT said that sigmoid is already taken into account in the loss function so no need to add here
+            # nn.Sigmoid()                              # Sigmoid activation function
         )
 
     def forward(self, x):

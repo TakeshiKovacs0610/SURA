@@ -16,7 +16,7 @@ def main():
     test_dir = '../data/kaggle_data/test/'
     root_dir='../data/kaggle_data/'
 
-    cur_model='resnet_50_pretrained_full_data'
+    cur_model='inceptionV3_full_data'
 
     # Load configurations from JSON file
     with open('configs.json', 'r') as f:
@@ -45,7 +45,8 @@ def main():
             transforms.ToTensor(),
             # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
             #just see if these are the correct mean and standard deivations.
-            transforms.Normalize(mean=[0.3203331149411, 0.224459668745, 0.1610336857647], std=[0.3024821581568, 0.2185284505098, 0.1741767781568])
+            transforms.Normalize(mean=[0.5029409906274, 0.5019639805098, 0.5016641769411], std=[0.0571741596078, 0.0643436185882, 0.041408169098]) # pre procesed
+            # transforms.Normalize(mean=[0.3203331149411, 0.224459668745, 0.1610336857647], std=[0.3024821581568, 0.2185284505098, 0.1741767781568]) # original
         ])
 
         train_hdf5_path = os.path.join(train_dir,'train_dataset.h5')
@@ -65,13 +66,14 @@ def main():
 
         # Initialize model, loss function, and optimizer
         # model = SimpleCNN(input_size=input_size,num_classes=5).to(device)
-        model = models.inception_v3(pretrained=True, aux_logits=False)
+        model = models.inception_v3(weights=models.Inception_V3_Weights.IMAGENET1K_V1, aux_logits=True)
         num_classes = 5
+        model.aux_logits= False
         model.fc = nn.Linear(model.fc.in_features, num_classes)
         model = model.to(device)
         
         criterion = nn.CrossEntropyLoss()
-        optimizer = optim.RMSprop( model.parameters() , lr=0.001 , weight_decay = 0.00004 )
+        optimizer = optim.RMSprop( model.parameters() , lr=learning_rate , weight_decay = 0.00004 )
 
         # Train the model
         train_model(train_loader,test_loader, model, criterion, optimizer,model_name=cur_model, num_epochs=num_epochs,save_every=2,checkpoint_num=None)

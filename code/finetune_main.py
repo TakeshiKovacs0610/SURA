@@ -64,12 +64,34 @@ def main():
             test_loader = torch.utils.data.DataLoader(torch.utils.data.Subset(test_loader.dataset, list(range(32))), batch_size=batch_size, num_workers=num_workers, shuffle=False)
             num_epochs = 30  # Reduce number of epochs for debugging
             
-        
-    # V add the path to the checkpoint
+    
+    # Initialize the CustomResNet model
+    # Still Need to make changes to the model
+        model = CustomResNet(num_classes=1)
+        model = model.to(device)
+    
+    # V add the path to the checkpoint -> "training_test_metrics_resnet_50_pretrained_full_data_pre_processed" -> Epoch 38 
     checkpoint_path = 'path/to/checkpoint.pth'
     checkpoint = torch.load(checkpoint_path)
     
+    # V if you get error here then let me know I might know why it is happening
+    model.load_state_dict(checkpoint['model_state_dict'], strict=False)
     
+    # Initialize optimizer
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
+    # Initialize loss function
+    criterion = nn.BCEWithLogitsLoss()  
+    # This is for binary classification
+    # Eariler we had multiclass classification so we used cross entropy loss
+    
+    
+    # Train the model
+    train_model(train_loader, test_loader, model, criterion, optimizer, model_name=cur_model, num_epochs=num_epochs, save_every=2, checkpoint_num=None)
+
+    result_csv_path = os.path.join(root_dir, 'predictions_finetuned.csv')
+    save_predictions_to_csv(test_loader, model, result_csv_path)
     
     
 

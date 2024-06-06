@@ -122,28 +122,28 @@ def load_checkpoint(model_name, checkpoint_num, model, optimizer):
     loss = checkpoint['loss']
     return model, optimizer, epoch, loss
 
-def evaluate_model(model,dataloader,criterion,device):
+def evaluate_model(model, dataloader, criterion, device):
     """Evaluate the model on the given dataset without performing updates."""
     model.eval()
-    running_loss=0.0
-    correct=0
-    total=0
+    running_loss = 0.0
+    correct = 0
+    total = 0
 
     with torch.no_grad():
-        for images,labels in tqdm(dataloader):
-            images,labels = images.to(device),labels.to(device)
+        for images, labels in tqdm(dataloader):
+            images, labels = images.to(device), labels.to(device)
             outputs = model(images)
-            loss = criterion(outputs,labels)
-            running_loss += loss.item() 
-            _,predicted =torch.max(outputs.data,1)
-            total+=labels.size(0)
-            correct+=(predicted == labels).sum().item()
-            
-    test_loss = running_loss/len(dataloader.dataset)
-    test_accuracy = 100*correct/total
+            loss = criterion(outputs, labels)
+            running_loss += loss.item()
+            predicted = (outputs > 0.5).float()  # Threshold for binary classification
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
 
-    # model.train() # resetting back to training 
-    return test_loss,test_accuracy
+    test_loss = running_loss / len(dataloader.dataset)
+    test_accuracy = 100 * correct / total
+    #model.train() # resetting back to training     
+    return test_loss, test_accuracy
+
 
 def train_model(train_loader, test_loader, model, criterion, optimizer, model_name, num_epochs=10, save_every=2, checkpoint_num=None):
     """Trains the model and saves checkpoints regularly."""
@@ -218,7 +218,7 @@ def save_predictions_to_csv(dataloader,model,output_file):
         for images,_ in tqdm(dataloader):
             images=images.to(device)
             outputs =model(images)
-            _,predicted =torch.max(outputs.data,1)
+            predicted = (outputs > 0.5).float()  # Threshold for binary classification
             predictions.extend(predicted.cpu().numpy())
             
     df =pd.DataFrame({'Predictions':predictions})

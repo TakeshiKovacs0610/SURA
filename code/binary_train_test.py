@@ -145,12 +145,12 @@ def evaluate_model(model,dataloader,criterion,device):
     # model.train() # resetting back to training 
     return test_loss,test_accuracy
 
-def train_model(train_loader,test_loader, model, criterion, optimizer, model_name, num_epochs=10, save_every=2, checkpoint_num=None):
+def train_model(train_loader, test_loader, model, criterion, optimizer, model_name, num_epochs=10, save_every=2, checkpoint_num=None):
     """Trains the model and saves checkpoints regularly."""
     train_losses = []  # List to store loss values for visualization
-    test_losses=[]
-    train_accuracies=[]
-    test_accuracies=[]
+    test_losses = []
+    train_accuracies = []
+    test_accuracies = []
     start_epoch = 0
 
     # Create directory for saving checkpoints if it doesn't exist
@@ -178,36 +178,36 @@ def train_model(train_loader,test_loader, model, criterion, optimizer, model_nam
             optimizer.step()
 
             running_loss += loss.item()
-            _, predicted = torch.max(outputs.data, 1)
+            predicted = (outputs > 0.5).float()  # Threshold for binary classification
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-            print("Batch Loss: {}, Running Accuracy: {}".format(loss.item(), correct/total))
+            print("Batch Loss: {}, Running Accuracy: {}".format(loss.item(), correct / total))
         
         epoch_loss = running_loss / len(train_loader.dataset)
         epoch_acc = 100 * correct / total
         train_losses.append(epoch_loss)
         train_accuracies.append(epoch_acc)
 
-        test_loss,test_accuracy = evaluate_model(model,test_loader,criterion,device)
+        test_loss, test_accuracy = evaluate_model(model, test_loader, criterion, device)
         test_losses.append(test_loss)
         test_accuracies.append(test_accuracy)
         
         logger.info(f'Epoch {epoch+1}/{num_epochs}, Train Loss: {epoch_loss:.4f}, Test Loss: {test_loss:.4f}, Accuracy: {epoch_acc:.2f}%')
         
-        # write metrics to file
-        metrics_path=os.path.join(save_dir,f'training_test_metrics_{model_name}.txt')
-        with open(metrics_path,'a') as f:
-            f.write(f'Epoch {epoch+1}: Train Loss : {epoch_loss:.4f}, Test Loss: {test_loss:.4f},Train Accuracy: {epoch_acc:.2f}%, Test Accuracy: {test_accuracy:.2f}%\n')
+        # Write metrics to file
+        metrics_path = os.path.join(save_dir, f'training_test_metrics_{model_name}.txt')
+        with open(metrics_path, 'a') as f:
+            f.write(f'Epoch {epoch+1}: Train Loss: {epoch_loss:.4f}, Test Loss: {test_loss:.4f}, Train Accuracy: {epoch_acc:.2f}%, Test Accuracy: {test_accuracy:.2f}%\n')
 
         # Save the model checkpoint after every 'save_every' epochs
         if (epoch + 1) % save_every == 0:
             checkpoint_filename = os.path.join(save_dir, f'checkpoint_epoch_{epoch+1}.pth')
             async_save_checkpoint(model, optimizer, epoch + 1, epoch_loss, checkpoint_filename)
         
-        #plot metrics after each epoch
-        plot_metrics(train_losses,test_losses, train_accuracies,test_accuracies,model_name)
+        # Plot metrics after each epoch
+        plot_metrics(train_losses, test_losses, train_accuracies, test_accuracies, model_name)
 
-    plot_metrics(train_losses,test_losses, train_accuracies,test_accuracies,model_name)  # Plot the loss values
+    plot_metrics(train_losses, test_losses, train_accuracies, test_accuracies, model_name)  # Plot the loss values
 
 
 def save_predictions_to_csv(dataloader,model,output_file):

@@ -67,8 +67,8 @@ def main():
     
     # Initialize the CustomResNet model
     # Still Need to make changes to the model
-        model = CustomResNet(num_classes=1)
-        model = model.to(device)
+    model = CustomResNet(num_classes=1)
+    model = model.to(device)
     
     # V add the path to the checkpoint -> "training_test_metrics_resnet_50_pretrained_full_data_pre_processed" -> Epoch 38 
     checkpoint_path = 'path/to/checkpoint.pth'
@@ -79,7 +79,9 @@ def main():
     
     # Initialize optimizer
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    
+    # No need to reload the optimizer we do that to resume pre training not to start a new fine tuning
+    # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
     # Initialize loss function
     criterion = nn.BCEWithLogitsLoss()  

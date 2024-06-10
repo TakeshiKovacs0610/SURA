@@ -20,7 +20,6 @@ logger = logging.getLogger()
 
 device = torch.device("cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu"))
 
-
 def async_save_checkpoint(model, optimizer, epoch, loss, filename='checkpoint.pth'):
     """Saves the model and optimizer state asynchronously using the new zipfile-based serialization format."""
     checkpoint = {
@@ -132,14 +131,15 @@ def evaluate_model(model, dataloader, criterion, device):
     with torch.no_grad():
         for images, labels in tqdm(dataloader):
             images, labels = images.to(device), labels.to(device)
+            labels = labels.float() # BCE loss funciton expects both the actual and predicted labels to be in float
             outputs = model(images)
-            loss = criterion(outputs, labels)
+            loss = criterion(outputs, labels.unsqueeze(1)) # BCE expects the dimensions to be same as well
             running_loss += loss.item()
-            predicted = (outputs > 0.5).float()  # Threshold for binary classification
+            predicted = (outputs > 0.5).float()
             total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+            correct += (predicted == labels.unsqueeze(1)).sum().item()
 
-    test_loss = running_loss / len(dataloader.dataset)
+    test_loss = running_loss / len(dataloader)
     test_accuracy = 100 * correct / total
     #model.train() # resetting back to training     
     return test_loss, test_accuracy
@@ -170,20 +170,21 @@ def train_model(train_loader, test_loader, model, criterion, optimizer, model_na
         
         for images, labels in tqdm(train_loader):
             images, labels = images.to(device), labels.to(device)
-            
+            labels = labels.float()
             optimizer.zero_grad()
             outputs = model(images)
-            loss = criterion(outputs, labels)
+            loss = criterion(outputs, labels.unsqueeze(1))
             loss.backward()
             optimizer.step()
 
             running_loss += loss.item()
+
             predicted = (outputs > 0.5).float()  # Threshold for binary classification
             total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+            correct += (predicted == labels.unsqueeze(1)).sum().item()
             print("Batch Loss: {}, Running Accuracy: {}".format(loss.item(), correct / total))
         
-        epoch_loss = running_loss / len(train_loader.dataset)
+        epoch_loss = running_loss / len(train_loader)
         epoch_acc = 100 * correct / total
         train_losses.append(epoch_loss)
         train_accuracies.append(epoch_acc)

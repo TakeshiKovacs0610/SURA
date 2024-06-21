@@ -1,7 +1,8 @@
 import torch
-import torchvision
 import torchvision.transforms as transforms
 from tqdm import tqdm
+import h5py
+from torch.utils.data import Dataset, DataLoader
 
 # MPS -> Metal Performance Shading for Apple Silicon
 # Check if MPS is available and set the device
@@ -10,26 +11,43 @@ device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 # Data loading work
 # My transform
 transform = transforms.Compose([
-    transforms.ToTensor(),
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
 ])  # Normalize ((mean), (std))
 
+# Custom dataset to load data from HDF5 file
+class CIFAR10HDF5(Dataset):
+    def __init__(self, hdf5_file, train=True, transform=None):
+        self.hdf5_file = hdf5_file
+        self.train = train
+        self.transform = transform
+        with h5py.File(self.hdf5_file, 'r') as f:
+            if self.train:
+                self.data = f['train_data'][:]
+                self.labels = f['train_labels'][:]
+            else:
+                self.data = f['test_data'][:]
+                self.labels = f['test_labels'][:]
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        img = self.data[idx]
+        label = self.labels[idx]
+        img = torch.tensor(img)
+        if self.transform:
+            img = self.transform(img)
+        return img, label
+
 def main():
-    # Loading the data
-    # Does the work of downloading the data if not present and applying the transforms
-    trainset = torchvision.datasets.CIFAR10(root='../data', train=True,
-                                            download=True, transform=transform)
+    # Load the HDF5 dataset
+    hdf5_file = '../data/cifar10.hdf5'
+    trainset = CIFAR10HDF5(hdf5_file, train=True, transform=transform)
+    testset = CIFAR10HDF5(hdf5_file, train=False, transform=transform)
 
-    # This basically creates an iterable dataset, creating batches and giving you the option to enable shuffle after every epoch.
-    # num_workers -> number of subprocesses to use for dataloading. More workers can speed up process.
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=100,
-                                              shuffle=True, num_workers=2)
-
-    testset = torchvision.datasets.CIFAR10(root='../data', train=False,
-                                           download=True, transform=transform)
-
-    testloader = torch.utils.data.DataLoader(testset, batch_size=100,
-                                             shuffle=False, num_workers=2)
+    # Data loaders
+    trainloader = DataLoader(trainset, batch_size=100, shuffle=True, num_workers=4)
+    testloader = DataLoader(testset, batch_size=100, shuffle=False, num_workers=4)
 
     classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 

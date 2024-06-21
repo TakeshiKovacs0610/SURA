@@ -1,0 +1,22 @@
+[Epoch 1, Batch 200] loss: 2.300
+[Epoch 1, Batch 400] loss: 2.284
+[Epoch 2, Batch 200] loss: 2.126
+[Epoch 2, Batch 400] loss: 1.935
+[Epoch 3, Batch 200] loss: 1.743
+[Epoch 3, Batch 400] loss: 1.643
+[Epoch 4, Batch 200] loss: 1.534
+[Epoch 4, Batch 400] loss: 1.478
+[Epoch 5, Batch 200] loss: 1.407
+[Epoch 5, Batch 400] loss: 1.387
+[Epoch 6, Batch 200] loss: 1.335
+[Epoch 6, Batch 400] loss: 1.309
+[Epoch 7, Batch 200] loss: 1.270
+[Epoch 7, Batch 400] loss: 1.247
+[Epoch 8, Batch 200] loss: 1.207
+[Epoch 8, Batch 400] loss: 1.182
+[Epoch 9, Batch 200] loss: 1.149
+[Epoch 9, Batch 400] loss: 1.146
+[Epoch 10, Batch 200] loss: 1.086
+[Epoch 10, Batch 400] loss: 1.107
+Finished Training
+Accuracy of the network on the 10000 test images: 60.39%

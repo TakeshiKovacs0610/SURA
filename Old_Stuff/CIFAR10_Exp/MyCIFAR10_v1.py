@@ -1,6 +1,7 @@
 import torch
 import torchvision
 import torchvision.transforms as transforms
+from tqdm import tqdm
 
 # MPS -> Metal Performance Shading for Apple Silicon
 # Check if MPS is available and set the device
@@ -64,52 +65,62 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(test_net.parameters(), lr=0.001, momentum=0.9)
 
-    for epoch in range(10):
-        running_loss = 0.0
+    with open("training_log.txt", "w") as log_file, open("layer_weights.txt", "w") as weights_file:
+        for epoch in range(10):
+            running_loss = 0.0
 
-        # enumerate takes the iterable trainloader and the starting index 0
-        for i, data in enumerate(trainloader, 0):
-            # get the inputs, data is a list of [inputs, labels]
-            # data is a list with 2 elements both are tensors, input is a tensor containing input images and labels is a tensor containing labels
-            inputs, labels = data
-            
-            # move to the device
-            inputs, labels = inputs.to(device), labels.to(device)
-            
-            # zero the parameter gradients
-            optimizer.zero_grad()
+            # enumerate takes the iterable trainloader and the starting index 0
+            for i, data in enumerate(tqdm(trainloader, desc=f"Epoch {epoch + 1}"), 0):
+                # get the inputs, data is a list of [inputs, labels]
+                # data is a list with 2 elements both are tensors, input is a tensor containing input images and labels is a tensor containing labels
+                inputs, labels = data
+                
+                # move to the device
+                inputs, labels = inputs.to(device), labels.to(device)
+                
+                # zero the parameter gradients
+                optimizer.zero_grad()
 
-            # forward + backward + optimize
-            outputs = test_net(inputs)
-            loss = criterion(outputs, labels)
-            loss.backward()  # calculate the gradient loss with respect to the model parameters using backprop
-            optimizer.step()  # update the model parameters using optimization algo SGD
+                # forward + backward + optimize
+                outputs = test_net(inputs)
+                loss = criterion(outputs, labels)
+                loss.backward()  # calculate the gradient loss with respect to the model parameters using backprop
+                optimizer.step()  # update the model parameters using optimization algo SGD
 
-            # print statistics
-            running_loss += loss.item()
-            if i % 200 == 199:  # print every 200 mini-batches
-                # .3f ensures that the printed loss is rounded and displayed to 3 decimal places f -> fixed point
-                print(f'[Epoch {epoch + 1}, Batch {i + 1}] loss: {running_loss / 200:.3f}')
-                running_loss = 0.0
+                # print statistics
+                running_loss += loss.item()
+                if i % 200 == 199:  # print every 200 mini-batches
+                    log_message = f'[Epoch {epoch + 1}, Batch {i + 1}] loss: {running_loss / 200:.3f}'
+                    print(log_message)
+                    log_file.write(log_message + '\n')
+                    running_loss = 0.0
 
-    print('Finished Training')
+            # After each epoch, calculate the sum of weights for each layer and write to file
+            weights_file.write(f"Epoch {epoch + 1}\n")
+            for name, param in test_net.named_parameters():
+                if param.requires_grad:
+                    weights_file.write(f"{name}: {param.data.sum().item()}\n")
 
-    # Testing part
-    correct = 0
-    total = 0
-    with torch.no_grad():
-        for data in testloader:
-            images, labels = data
-            
-            # moved to device
-            images, labels = images.to(device), labels.to(device)
-            
-            outputs = test_net(images)
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+        log_file.write('Finished Training\n')
 
-    print(f'Accuracy of the network on the 10000 test images: {100 * correct / total:.2f}%')
+        # Testing part
+        correct = 0
+        total = 0
+        with torch.no_grad():
+            for data in tqdm(testloader, desc="Testing"):
+                images, labels = data
+                
+                # moved to device
+                images, labels = images.to(device), labels.to(device)
+                
+                outputs = test_net(images)
+                _, predicted = torch.max(outputs.data, 1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+
+        accuracy_message = f'Accuracy of the network on the 10000 test images: {100 * correct / total:.2f}%'
+        print(accuracy_message)
+        log_file.write(accuracy_message + '\n')
 
 if __name__ == '__main__':
     main()
